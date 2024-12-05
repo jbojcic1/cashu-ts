@@ -183,6 +183,32 @@ export type MintQuoteResponse = {
 /**
  * Response from the mint after requesting a mint
  */
+export type SignedMintQuoteResponse = {
+	/**
+	 * Payment request
+	 */
+	request: string;
+	/**
+	 * Quote ID
+	 */
+	quote: string;
+	/**
+	 * State of the mint quote
+	 */
+	state: MintQuoteState;
+	/**
+	 * Timestamp of when the quote expires
+	 */
+	expiry: number;
+	/**
+	 * Pubkey the mint is locked to
+	 */
+	pubkey: string;
+} & ApiError;
+
+/**
+ * Response from the mint after requesting a mint
+ */
 export type MintResponse = {
 	signatures: Array<SerializedBlindedSignature>;
 } & ApiError;

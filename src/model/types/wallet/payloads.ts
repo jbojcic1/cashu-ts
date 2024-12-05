@@ -62,6 +62,10 @@ export type MintPayload = {
 	 * Outputs (blinded messages) to be signed by the mint.
 	 */
 	outputs: Array<SerializedBlindedMessage>;
+	/**
+	 * Signature on the mint request
+	 */
+	signature?: string;
 };
 
 /**
@@ -80,6 +84,10 @@ export type MintQuotePayload = {
 	 * Description for the invoice
 	 */
 	description?: string;
+	/**
+	 * pubkey to lock the mint to.
+	 */
+	pubkey?: string;
 };
 
 /**
