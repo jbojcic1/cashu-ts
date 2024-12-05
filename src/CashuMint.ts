@@ -16,7 +16,8 @@ import type {
 	MintResponse,
 	PostRestorePayload,
 	MeltQuotePayload,
-	MeltQuoteResponse
+	MeltQuoteResponse,
+	SignedMintQuoteResponse
 } from './model/types/index.js';
 import { MeltQuoteState } from './model/types/index.js';
 import request from './request.js';
@@ -112,13 +113,15 @@ class CashuMint {
 	 * @param customRequest
 	 * @returns the mint will create and return a new mint quote containing a payment request for the specified amount and unit
 	 */
-	public static async createMintQuote(
+	public static async createMintQuote<T extends MintQuotePayload>(
 		mintUrl: string,
-		mintQuotePayload: MintQuotePayload,
+		mintQuotePayload: T,
 		customRequest?: typeof request
-	): Promise<MintQuoteResponse> {
+	): Promise<'pubkey' extends keyof T ? SignedMintQuoteResponse : MintQuoteResponse> {
 		const requestInstance = customRequest || request;
-		const response = await requestInstance<MintQuoteResponse & MintQuoteResponsePaidDeprecated>({
+		const response = await requestInstance<
+			'pubkey' extends keyof T ? SignedMintQuoteResponse : MintQuoteResponse
+		>({
 			endpoint: joinUrls(mintUrl, '/v1/mint/quote/bolt11'),
 			method: 'POST',
 			requestBody: mintQuotePayload

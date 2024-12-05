@@ -19,10 +19,19 @@ import {
 import { TOKEN_PREFIX, TOKEN_VERSION } from './utils/Constants.js';
 import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
 import { sha256 } from '@noble/hashes/sha256';
+import { schnorr } from '@noble/curves/secp256k1';
 import { decodeCBOR, encodeCBOR } from './cbor.js';
 import { PaymentRequest } from './model/PaymentRequest.js';
 import { DLEQ, pointFromHex } from '@cashu/crypto/modules/common';
 import { verifyDLEQProof_reblind } from '@cashu/crypto/modules/client/NUT12';
+import { randomBytes } from '@noble/hashes/utils';
+
+export function createRandomSchnorrKeypair() {
+	const secretKey = randomBytes(32);
+	const publicKey = schnorr.getPublicKey(secretKey);
+
+	console.log(secretKey, publicKey);
+}
 
 /**
  * Splits the amount into denominations of the provided @param keyset

@@ -47,6 +47,7 @@ import { type Proof as NUT11Proof, DLEQ } from '@cashu/crypto/modules/common/ind
 import { SubscriptionCanceller } from './model/types/wallet/websocket.js';
 import { verifyDLEQProof_reblind } from '@cashu/crypto/modules/client/NUT12';
 import { MintInfo } from './model/MintInfo.js';
+import { schnorr } from '@noble/curves/secp256k1.js';
 /**
  * The default number of proofs per denomination to keep in a wallet.
  */
@@ -651,6 +652,26 @@ class CashuWallet {
 		return await this.mint.createMintQuote(mintQuotePayload);
 	}
 
+	async createSignedMintQuote(
+		amount: number,
+		description?: string,
+		lockingSecretKey?: Uint8Array
+	): Promise<{
+		keypair: { publicKey: Uint8Array; secretKey: Uint8Array };
+		response: MintQuoteResponse & { pubkey: string };
+	}> {
+		const secretKey = lockingSecretKey ?? randomBytes(32);
+		const publicKey = schnorr.getPublicKey(secretKey);
+		const mintQuotePayload: MintQuotePayload = {
+			unit: this._unit,
+			amount: amount,
+			description: description,
+			pubkey: bytesToHex(publicKey)
+		};
+		const response = await this.mint.createMintQuote(mintQuotePayload);
+		return { keypair: { publicKey, secretKey }, response };
+	}
+
 	/**
 	 * Gets an existing mint quote from the mint.
 	 * @param quote Quote ID
@@ -671,10 +692,13 @@ class CashuWallet {
 	 * @param options.pubkey? optionally locks ecash to pubkey. Will not be deterministic, even if counter is set!
 	 * @returns proofs
 	 */
-	async mintProofs(
+	async mintProofs<T extends MintQuoteResponse>(
 		amount: number,
-		quote: string,
+		quote: T | string,
 		options?: {
+			nutXKeyPair?: 'pubkey' extends keyof T
+				? { publicKey: Uint8Array; secretKey: Uint8Array }
+				: never;
 			keysetId?: string;
 			outputAmounts?: OutputAmounts;
 			proofsWeHave?: Array<Proof>;
