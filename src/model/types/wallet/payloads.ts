@@ -84,11 +84,9 @@ export type MintQuotePayload = {
 	 * Description for the invoice
 	 */
 	description?: string;
-	/**
-	 * pubkey to lock the mint to.
-	 */
-	pubkey?: string;
 };
+
+export type SignedMintQuotePayload = MintQuotePayload & { pubkey: string };
 
 /**
  * Payload that needs to be sent to the mint when performing a split action

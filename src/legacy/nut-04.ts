@@ -5,9 +5,13 @@ export type MintQuoteResponsePaidDeprecated = {
 	paid?: boolean;
 };
 
-export function handleMintQuoteResponseDeprecated<
-	T extends MintQuoteResponse & MintQuoteResponsePaidDeprecated
->(response: T): T extends { pubkey: string } ? SignedMintQuoteResponse : MintQuoteResponse {
+export function handleMintQuoteResponseDeprecated(
+	response: MintQuoteResponse & { pubkey: string }
+): SignedMintQuoteResponse;
+export function handleMintQuoteResponseDeprecated(response: MintQuoteResponse): MintQuoteResponse;
+export function handleMintQuoteResponseDeprecated(
+	response: MintQuoteResponse & { paid?: boolean; pubkey?: string }
+) {
 	// if the response MeltQuoteResponse has a "paid" flag, we monkey patch it to the state enum
 	if (!response.state) {
 		console.warn(
@@ -22,8 +26,5 @@ export function handleMintQuoteResponseDeprecated<
 	if ('pubkey' in response && typeof response.pubkey === 'string') {
 		return response as SignedMintQuoteResponse;
 	}
-
-	const test = { ...response } as MintQuoteResponse;
-
-	return test;
+	return response as MintQuoteResponse;
 }

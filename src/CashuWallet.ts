@@ -47,7 +47,7 @@ import { type Proof as NUT11Proof, DLEQ } from '@cashu/crypto/modules/common/ind
 import { SubscriptionCanceller } from './model/types/wallet/websocket.js';
 import { verifyDLEQProof_reblind } from '@cashu/crypto/modules/client/NUT12';
 import { MintInfo } from './model/MintInfo.js';
-import { schnorr } from '@noble/curves/secp256k1.js';
+import { schnorr } from '@noble/curves/secp256k1';
 /**
  * The default number of proofs per denomination to keep in a wallet.
  */
@@ -662,7 +662,7 @@ class CashuWallet {
 	}> {
 		const secretKey = lockingSecretKey ?? randomBytes(32);
 		const publicKey = schnorr.getPublicKey(secretKey);
-		const mintQuotePayload: MintQuotePayload = {
+		const mintQuotePayload: MintQuotePayload & { pubkey: string } = {
 			unit: this._unit,
 			amount: amount,
 			description: description,
@@ -728,7 +728,7 @@ class CashuWallet {
 		);
 		const mintPayload: MintPayload = {
 			outputs: blindedMessages,
-			quote: quote
+			quote: typeof quote === 'string' ? quote : quote.quote
 		};
 		const { signatures } = await this.mint.mint(mintPayload);
 		return this.constructProofs(signatures, blindingFactors, secrets, keyset);

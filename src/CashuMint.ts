@@ -17,7 +17,8 @@ import type {
 	PostRestorePayload,
 	MeltQuotePayload,
 	MeltQuoteResponse,
-	SignedMintQuoteResponse
+	SignedMintQuoteResponse,
+	SignedMintQuotePayload
 } from './model/types/index.js';
 import { MeltQuoteState } from './model/types/index.js';
 import request from './request.js';
@@ -113,15 +114,23 @@ class CashuMint {
 	 * @param customRequest
 	 * @returns the mint will create and return a new mint quote containing a payment request for the specified amount and unit
 	 */
-	public static async createMintQuote<T extends MintQuotePayload>(
+	public static async createMintQuote(
 		mintUrl: string,
-		mintQuotePayload: T,
+		mintQuotePayload: SignedMintQuotePayload,
 		customRequest?: typeof request
-	): Promise<'pubkey' extends keyof T ? SignedMintQuoteResponse : MintQuoteResponse> {
+	): Promise<SignedMintQuoteResponse>;
+	public static async createMintQuote(
+		mintUrl: string,
+		mintQuotePayload: MintQuotePayload,
+		customRequest?: typeof request
+	): Promise<MintQuoteResponse>;
+	public static async createMintQuote(
+		mintUrl: string,
+		mintQuotePayload: MintQuotePayload | SignedMintQuotePayload,
+		customRequest?: typeof request
+	) {
 		const requestInstance = customRequest || request;
-		const response = await requestInstance<
-			'pubkey' extends keyof T ? SignedMintQuoteResponse : MintQuoteResponse
-		>({
+		const response = await requestInstance<SignedMintQuoteResponse | MintQuoteResponse>({
 			endpoint: joinUrls(mintUrl, '/v1/mint/quote/bolt11'),
 			method: 'POST',
 			requestBody: mintQuotePayload
@@ -132,10 +141,19 @@ class CashuMint {
 	/**
 	 * Requests a new mint quote from the mint.
 	 * @param mintQuotePayload Payload for creating a new mint quote
-	 * @returns the mint will create and return a new mint quote containing a payment request for the specified amount and unit
+	 * @returns the mint will create and return a new mint quote containing a payment request for the specified amo  unt and unit
 	 */
-	async createMintQuote(mintQuotePayload: MintQuotePayload): Promise<MintQuoteResponse> {
-		return CashuMint.createMintQuote(this._mintUrl, mintQuotePayload, this._customRequest);
+	async createMintQuote<T extends SignedMintQuotePayload | MintQuotePayload>(
+		mintQuotePayload: T
+	): Promise<
+		Promise<T extends SignedMintQuotePayload ? SignedMintQuoteResponse : MintQuoteResponse>
+	> {
+		const res = await CashuMint.createMintQuote(
+			this._mintUrl,
+			mintQuotePayload,
+			this._customRequest
+		);
+		return res as T extends SignedMintQuotePayload ? SignedMintQuoteResponse : MintQuoteResponse;
 	}
 
 	/**
