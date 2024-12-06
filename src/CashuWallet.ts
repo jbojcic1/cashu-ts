@@ -23,7 +23,8 @@ import {
 	MintQuoteResponse,
 	MintQuoteState,
 	MeltQuoteState,
-	SerializedDLEQ
+	SerializedDLEQ,
+	SignedMintQuoteResponse
 } from './model/types/index.js';
 import {
 	bytesToNumber,
@@ -692,7 +693,7 @@ class CashuWallet {
 	 * @param options.pubkey? optionally locks ecash to pubkey. Will not be deterministic, even if counter is set!
 	 * @returns proofs
 	 */
-	async mintProofs<T extends MintQuoteResponse>(
+	async mintProofs<T extends MintQuoteResponse | SignedMintQuoteResponse>(
 		amount: number,
 		quote: T | string,
 		options?: {
@@ -726,10 +727,22 @@ class CashuWallet {
 			options?.counter,
 			options?.pubkey
 		);
-		const mintPayload: MintPayload = {
-			outputs: blindedMessages,
-			quote: typeof quote === 'string' ? quote : quote.quote
-		};
+		let mintPayload: MintPayload;
+		if (typeof quote === 'string') {
+			mintPayload = {
+				outputs: blindedMessages,
+				quote: quote
+			};
+		} else {
+			mintPayload = {
+				outputs: blindedMessages,
+				quote: quote.quote
+			};
+			if ('pubkey' in quote) {
+				// TODO: Sign quote and add it
+			}
+		}
+
 		const { signatures } = await this.mint.mint(mintPayload);
 		return this.constructProofs(signatures, blindingFactors, secrets, keyset);
 	}
