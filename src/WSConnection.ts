@@ -40,6 +40,7 @@ export class WSConnection {
 	private messageQueue: MessageQueue;
 	private handlingInterval?: number;
 	private rpcId = 0;
+	private onCloseCallbacks: Array<() => void> = [];
 
 	constructor(url: string) {
 		this._WS = getWebSocketImpl();
@@ -53,6 +54,7 @@ export class WSConnection {
 			this.connectionPromise = new Promise((res: OnOpenSuccess, rej: OnOpenError) => {
 				try {
 					this.ws = new this._WS(this.url.toString());
+					this.onCloseCallbacks = [];
 					console.log('WSConnection.connect() created ws', { ws: this.ws, url: this.url });
 				} catch (err) {
 					rej(err);
@@ -77,6 +79,7 @@ export class WSConnection {
 				this.ws.onclose = () => {
 					console.log('WSConnection.connect() onclose', { ws: this.ws, url: this.url });
 					this.connectionPromise = undefined;
+					this.onCloseCallbacks.forEach((cb) => cb());
 				};
 			});
 		}
@@ -87,6 +90,9 @@ export class WSConnection {
 	sendRequest(method: 'unsubscribe', params: { subId: string }): void;
 	sendRequest(method: 'subscribe' | 'unsubscribe', params: Partial<JsonRpcReqParams>) {
 		if (this.ws?.readyState !== 1) {
+			if (method === 'unsubscribe') {
+				return;
+			}
 			throw new Error('Socket not open...');
 		}
 		const id = this.rpcId;
@@ -221,5 +227,9 @@ export class WSConnection {
 		if (this.ws) {
 			this.ws?.close();
 		}
+	}
+
+	onClose(callback: () => void) {
+		this.onCloseCallbacks.push(callback);
 	}
 }

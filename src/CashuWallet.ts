@@ -1093,12 +1093,14 @@ class CashuWallet {
 	 * @param quoteIds List of mint quote IDs that should be subscribed to
 	 * @param callback Callback function that will be called whenever a mint quote state changes
 	 * @param errorCallback
+	 * @param closedCallback Callback function that will be called whenever the WebSocket connection is closed
 	 * @returns
 	 */
 	async onMintQuoteUpdates(
 		quoteIds: Array<string>,
 		callback: (payload: MintQuoteResponse) => void,
-		errorCallback: (e: Error) => void
+		errorCallback: (e: Error) => void,
+		closedCallback: () => void = () => {}
 	): Promise<SubscriptionCanceller> {
 		console.log('CashuWallet.onMintQuoteUpdates() called', { quoteIds });
 		await this.mint.connectWebSocket();
@@ -1110,6 +1112,7 @@ class CashuWallet {
 			callback,
 			errorCallback
 		);
+		this.mint.webSocketConnection.onClose(closedCallback);
 		console.log('CashuWallet.onMintQuoteUpdates() created subscription', { quoteIds, subId });
 		return () => {
 			this.mint.webSocketConnection?.cancelSubscription(subId, callback);

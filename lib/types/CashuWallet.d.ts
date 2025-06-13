@@ -232,9 +232,10 @@ declare class CashuWallet {
      * @param quoteIds List of mint quote IDs that should be subscribed to
      * @param callback Callback function that will be called whenever a mint quote state changes
      * @param errorCallback
+     * @param closedCallback Callback function that will be called whenever the WebSocket connection is closed
      * @returns
      */
-    onMintQuoteUpdates(quoteIds: Array<string>, callback: (payload: MintQuoteResponse) => void, errorCallback: (e: Error) => void): Promise<SubscriptionCanceller>;
+    onMintQuoteUpdates(quoteIds: Array<string>, callback: (payload: MintQuoteResponse) => void, errorCallback: (e: Error) => void, closedCallback?: () => void): Promise<SubscriptionCanceller>;
     /**
      * Register a callback to be called whenever a melt quote's state changes
      * @param quoteIds List of melt quote IDs that should be subscribed to

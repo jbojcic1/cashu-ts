@@ -15,6 +15,7 @@ export declare class WSConnection {
     private messageQueue;
     private handlingInterval?;
     private rpcId;
+    private onCloseCallbacks;
     constructor(url: string);
     connect(): Promise<void>;
     sendRequest(method: 'subscribe', params: JsonRpcReqParams): void;
@@ -32,4 +33,5 @@ export declare class WSConnection {
     cancelSubscription(subId: string, callback: (payload: any) => any): void;
     get activeSubscriptions(): string[];
     close(): void;
+    onClose(callback: () => void): void;
 }
