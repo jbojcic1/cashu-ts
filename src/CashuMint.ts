@@ -514,6 +514,7 @@ class CashuMint {
 	 * Tries to establish a websocket connection with the websocket mint url according to NUT-17
 	 */
 	async connectWebSocket() {
+		console.log('CashuMint.connectWebSocket() called', { ws: this.ws, mintUrl: this._mintUrl })
 		if (this.ws) {
 			await this.ws.ensureConnection();
 		} else {
@@ -529,6 +530,7 @@ class CashuMint {
 			this.ws = ConnectionManager.getInstance().getConnection(
 				`${mintUrl.protocol === 'https:' ? 'wss' : 'ws'}://${mintUrl.host}${mintUrl.pathname}`
 			);
+			console.log('CashuMint.connectWebSocket() created ws', { ws: this.ws, mintUrl: this._mintUrl })
 			try {
 				await this.ws.connect();
 			} catch (e) {

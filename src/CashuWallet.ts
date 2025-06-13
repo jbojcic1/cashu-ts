@@ -1100,6 +1100,7 @@ class CashuWallet {
 		callback: (payload: MintQuoteResponse) => void,
 		errorCallback: (e: Error) => void
 	): Promise<SubscriptionCanceller> {
+		console.log('CashuWallet.onMintQuoteUpdates() called', { quoteIds });
 		await this.mint.connectWebSocket();
 		if (!this.mint.webSocketConnection) {
 			throw new Error('failed to establish WebSocket connection.');
@@ -1109,8 +1110,10 @@ class CashuWallet {
 			callback,
 			errorCallback
 		);
+		console.log('CashuWallet.onMintQuoteUpdates() created subscription', { quoteIds, subId });
 		return () => {
 			this.mint.webSocketConnection?.cancelSubscription(subId, callback);
+			console.log('CashuWallet.onMintQuoteUpdates() cancelled subscription', { quoteIds, subId });
 		};
 	}
 

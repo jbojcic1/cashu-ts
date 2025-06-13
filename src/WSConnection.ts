@@ -48,15 +48,18 @@ export class WSConnection {
 	}
 
 	connect() {
+		console.log('WSConnection.connect() called', { ws: this.ws, url: this.url, connectionPromise: this.connectionPromise });
 		if (!this.connectionPromise) {
 			this.connectionPromise = new Promise((res: OnOpenSuccess, rej: OnOpenError) => {
 				try {
 					this.ws = new this._WS(this.url.toString());
+					console.log('WSConnection.connect() created ws', { ws: this.ws, url: this.url });
 				} catch (err) {
 					rej(err);
 					return;
 				}
 				this.ws.onopen = () => {
+					console.log('WSConnection.connect() onopen', { ws: this.ws, url: this.url });
 					res();
 				};
 				this.ws.onerror = () => {
@@ -72,6 +75,7 @@ export class WSConnection {
 					}
 				};
 				this.ws.onclose = () => {
+					console.log('WSConnection.connect() onclose', { ws: this.ws, url: this.url });
 					this.connectionPromise = undefined;
 				};
 			});
@@ -125,6 +129,15 @@ export class WSConnection {
 	}
 
 	async ensureConnection() {
+		const readyStateMap: Record<number, string> = {
+			0: 'CONNECTING',
+			1: 'OPEN',
+			2: 'CLOSING',
+			3: 'CLOSED'
+		};
+		const readyState = this.ws ? readyStateMap[this.ws.readyState] : null;
+
+		console.log('WSConnection.ensureConnection() called', { ws: this.ws, url: this.url, readyState });
 		if (this.ws?.readyState !== 1) {
 			await this.connect();
 		}
